@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ultimate webook toolkit</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b0e13;color:#e6eaf0;font:14px system-ui,Segoe UI,Arial}
+button,input,textarea,select{font:inherit}button{cursor:pointer;border:0;border-radius:7px;padding:9px 12px;background:#5865f2;color:white;font-weight:600}button.secondary{background:#242a34}button.danger{background:#b83b46}
+.app{max-width:1400px;margin:auto;padding:18px}.top{display:flex;gap:10px;align-items:center;margin-bottom:15px}.top h1{margin:0;font-size:22px}.top .grow{flex:1}
+.layout{display:grid;grid-template-columns:250px minmax(360px,1fr) minmax(360px,1fr);gap:14px}.panel{background:#151922;border:1px solid #292f3a;border-radius:10px;padding:14px}.panel h2{font-size:15px;margin:0 0 12px}.field{margin:10px 0}.field label{display:block;color:#9aa3b2;font-size:12px;margin-bottom:5px}.field input,.field textarea,.field select{width:100%;background:#0f131a;border:1px solid #303745;color:#e6eaf0;border-radius:7px;padding:9px;outline:none}.field textarea{min-height:90px;resize:vertical}.row{display:flex;gap:7px}.row>*{flex:1}.small{font-size:11px;color:#7f8999}.tabs{display:flex;gap:5px;margin-bottom:10px}.tabs button{flex:1}.hidden{display:none}.webhook{padding:9px;border-radius:7px;background:#0f131a;border:1px solid #292f3a;margin-bottom:7px;cursor:pointer}.webhook.active{border-color:#5865f2}.webhook b{display:block}.webhook small{color:#7f8999}.preview{background:#313338;border-radius:8px;padding:14px;min-height:300px}.msg{display:flex;gap:11px}.avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;background:#5865f2;flex:none}.name{font-weight:700;color:#fff}.time{font-size:11px;color:#949ba4;margin-left:6px}.content{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:3px}.embed{margin-top:9px;border-left:4px solid #5865f2;background:#2b2d31;padding:10px;border-radius:4px;max-width:620px}.embed-title{font-weight:700;font-size:15px}.embed-desc{white-space:pre-wrap;margin-top:5px}.embed img.main{max-width:100%;max-height:260px;margin-top:9px;border-radius:4px}.thumb{width:70px;height:70px;object-fit:cover;float:right;margin-left:10px;border-radius:4px}.embed-footer{font-size:11px;color:#949ba4;margin-top:9px}.json{background:#090c10;padding:12px;border-radius:7px;white-space:pre-wrap;overflow:auto;max-height:600px;font:12px Consolas,monospace}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.counter{float:right;color:#7f8999;font-size:11px}.status{margin-top:8px;min-height:18px}.ok{color:#4ade80}.err{color:#ff6b6b}.checks{display:grid;grid-template-columns:1fr 1fr;gap:6px}.checks label{font-size:12px;color:#b7bfcc}
+@media(max-width:1050px){.layout{grid-template-columns:220px 1fr}.right{grid-column:1/-1}}@media(max-width:700px){.layout{grid-template-columns:1fr}.right{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top"><h1>Ultimate webook toolkit</h1><div class="grow"></div><button class="secondary" onclick="exportData()">Export</button><button class="secondary" onclick="importData()">Import</button><button class="danger" onclick="clearAll()">Clear All</button></div>
+<div class="layout">
+<aside class="panel"><h2>Saved Webhooks</h2><div id="webhooks"></div><button style="width:100%" onclick="addWebhook()">＋ Add Webhook</button><p class="small">Saved locally in this browser. Webhook URLs never need to be put in the page source.</p></aside>
+
+<section class="panel">
+<div class="tabs"><button id="msgTab" onclick="showTab('message')">Message</button><button class="secondary" onclick="showTab('embed')">Embeds</button><button class="secondary" onclick="showTab('settings')">Settings</button></div>
+<div id="messageTab">
+<div class="field"><label>Webhook name</label><input id="hookName" oninput="saveCurrent()" placeholder="My webhook"></div>
+<div class="field"><label>Webhook URL</label><input id="hookURL" type="url" oninput="saveCurrent()" placeholder="https://discord.com/api/webhooks/..."></div>
+<div class="field"><label>Username <span class="counter" id="userCount"></span></label><input id="username" maxlength="80" oninput="update()"></div>
+<div class="field"><label>Avatar URL</label><input id="avatar" type="url" oninput="update()"></div>
+<div class="field"><label>Message <span class="counter" id="msgCount"></span></label><textarea id="message" maxlength="2000" oninput="update()"></textarea></div>
+<div class="field"><label>Allowed mentions</label><select id="mentions" onchange="update()"><option value="none">No mentions</option><option value="users">Users only</option><option value="roles">Roles only</option><option value="everyone">Everyone / here / users / roles</option></select></div>
+</div>
+
+<div id="embedTab" class="hidden">
+<div class="field"><label>Enable embed</label><select id="embedEnabled" onchange="update()"><option value="yes">Yes</option><option value="no">No</option></select></div>
+<div class="field"><label>Title</label><input id="embedTitle" oninput="update()"></div>
+<div class="field"><label>Description</label><textarea id="embedDesc" oninput="update()"></textarea></div>
+<div class="row"><div class="field"><label>Color</label><input id="embedColor" type="color" value="#5865f2" onchange="update()"></div><div class="field"><label>URL</label><input id="embedURL" type="url" oninput="update()"></div></div>
+<div class="field"><label>Author name</label><input id="embedAuthor" oninput="update()"></div>
+<div class="field"><label>Author icon URL</label><input id="authorIcon" type="url" oninput="update()"></div>
+<div class="field"><label>Main image URL</label><input id="embedImage" type="url" oninput="update()"></div>
+<div class="field"><label>Thumbnail URL</label><input id="embedThumb" type="url" oninput="update()"></div>
+<div class="field"><label>Footer text</label><input id="embedFooter" oninput="update()"></div>
+<div class="field"><label>Footer icon URL</label><input id="footerIcon" type="url" oninput="update()"></div>
+<div class="field"><label>Timestamp</label><select id="embedTimestamp" onchange="update()"><option value="no">No</option><option value="yes">Yes</option></select></div>
+</div>
+
+<div id="settingsTab" class="hidden">
+<div class="field"><label>Text-to-speech</label><select id="tts" onchange="update()"><option value="no">Off</option><option value="yes">On</option></select></div>
+<div class="field"><label>Thread ID (optional)</label><input id="thread" oninput="saveCurrent()"></div>
+<div class="field"><label>Suppression</label><div class="checks"><label><input id="suppressEmbeds" type="checkbox" onchange="update()"> Suppress embeds</label><label><input id="suppressNotifications" type="checkbox" onchange="update()"> Suppress notifications</label></div></div>
+<div class="actions"><button onclick="testWebhook()">Test Webhook</button><button class="secondary" onclick="copyJSON()">Copy JSON</button><button class="secondary" onclick="saveTemplate()">Save Template</button><button class="secondary" onclick="loadTemplate()">Load Template</button></div>
+</div>
+<div class="actions"><button onclick="send()">Send Message</button><button class="secondary" onclick="clearMessage()">Clear</button><button class="secondary" onclick="duplicate()">Duplicate</button></div><div id="status" class="status"></div>
+</section>
+
+<section class="panel right"><div class="tabs"><button id="previewTab" onclick="showPreview('preview')">Preview</button><button class="secondary" onclick="showPreview('json')">JSON</button></div><div id="preview"></div><pre id="json" class="json hidden"></pre></section>
+</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const defaults={name:"My Webhook",url:"",username:"Web User",avatar:"",message:"",mentions:"none",embedEnabled:"yes",embedTitle:"",embedDesc:"",embedColor:"#5865f2",embedURL:"",embedAuthor:"",authorIcon:"",embedImage:"",embedThumb:"",embedFooter:"",footerIcon:"",embedTimestamp:"no",tts:"no",thread:"",suppressEmbeds:false,suppressNotifications:false};
+let data=JSON.parse(localStorage.getItem("webhookStudio")||"null")||{hooks:[],current:-1};
+if(!data.hooks.length){data.hooks=[{...defaults}];data.current=0}
+function save(){localStorage.setItem("webhookStudio",JSON.stringify(data));renderHooks()}
+function current(){return data.hooks[data.current]}
+function addWebhook(){data.hooks.push({...defaults,name:"Webhook "+(data.hooks.length+1)});data.current=data.hooks.length-1;load();save()}
+function duplicate(){data.hooks.push({...current(),name:current().name+" Copy"});data.current=data.hooks.length-1;load();save()}
+function selectHook(i){data.current=i;load();save()}
+function renderHooks(){ $("webhooks").innerHTML=data.hooks.map((h,i)=>`<div class="webhook ${i===data.current?"active":""}" onclick="selectHook(${i})"><b>${esc(h.name||"Unnamed")}</b><small>${h.url?mask(h.url):"No URL set"}</small></div>`).join("")}
+function mask(x){return x.slice(0,35)+"…"}
+function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function load(){let h=current();Object.keys(defaults).forEach(k=>{if($(keyId(k)))$(keyId(k)).value=h[k]??defaults[k]; if(typeof h[k]==="boolean"&&$(keyId(k)))$(keyId(k)).checked=h[k]});update();renderHooks()}
+function keyId(k){return k}
+function read(){let h=current();Object.keys(defaults).forEach(k=>{let e=$(k);if(!e)return;h[k]=typeof defaults[k]==="boolean"?e.checked:e.value});}
+function saveCurrent(){read();save()}
+function update(){read();$("userCount").textContent=`${$("username").value.length}/80`;$("msgCount").textContent=`${$("message").value.length}/2000`;render();$("json").textContent=JSON.stringify(payload(),null,2);save()}
+function payload(test=false){
+let h=current(),p={username:h.username||undefined,avatar_url:h.avatar||undefined,content:h.message||undefined,tts:h.tts==="yes",embeds:[]};
+if(h.embedEnabled==="yes" && (h.embedTitle||h.embedDesc||h.embedImage||h.embedThumb||h.embedAuthor||h.embedFooter||h.embedURL)){let e={};if(h.embedTitle)e.title=h.embedTitle;if(h.embedDesc)e.description=h.embedDesc;if(h.embedURL)e.url=h.embedURL;if(h.embedColor)e.color=parseInt(h.embedColor.slice(1),16);if(h.embedAuthor)e.author={name:h.embedAuthor,...(h.authorIcon?{icon_url:h.authorIcon}:{})};if(h.embedImage)e.image={url:h.embedImage};if(h.embedThumb)e.thumbnail={url:h.embedThumb};if(h.embedFooter)e.footer={text:h.embedFooter,...(h.footerIcon?{icon_url:h.footerIcon}:{})};if(h.embedTimestamp==="yes")e.timestamp=new Date().toISOString();p.embeds=[e]}
+if(h.mentions==="none")p.allowed_mentions={parse:[]};if(h.mentions==="users")p.allowed_mentions={parse:["users"]};if(h.mentions==="roles")p.allowed_mentions={parse:["roles"]};if(h.mentions==="everyone")p.allowed_mentions={parse:["everyone","users","roles"]};if(!p.username)delete p.username;if(!p.avatar_url)delete p.avatar_url;if(!p.content)delete p.content;if(!p.embeds.length)delete p.embeds;return p}
+function render(){let h=current();let av=h.avatar||"https://cdn.discordapp.com/embed/avatars/0.png";let e="";if(h.embedEnabled==="yes"&&(h.embedTitle||h.embedDesc||h.embedImage||h.embedThumb||h.embedAuthor||h.embedFooter||h.embedURL)){e=`<div class="embed" style="border-color:${esc(h.embedColor)}">${h.embedThumb?`<img class="thumb" src="${esc(h.embedThumb)}" onerror="this.style.display='none'">`:""}${h.embedAuthor?`<div class="small">${esc(h.embedAuthor)}</div>`:""}${h.embedTitle?`<div class="embed-title">${esc(h.embedTitle)}</div>`:""}${h.embedDesc?`<div class="embed-desc">${esc(h.embedDesc)}</div>`:""}${h.embedImage?`<img class="main" src="${esc(h.embedImage)}" onerror="this.style.display='none'">`:""}${h.embedFooter?`<div class="embed-footer">${esc(h.embedFooter)}${h.embedTimestamp==="yes"?" • "+new Date().toLocaleString():""}</div>`:""}</div>`}
+$("preview").innerHTML=`<div class="preview"><div class="msg"><img class="avatar" src="${esc(av)}" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'"><div><span class="name">${esc(h.username||"Web User")}</span><span class="time">Today</span><div class="content">${esc(h.message||"Your message will appear here…")}</div>${e}</div></div></div>`}
+async function send(){read();let h=current();if(!h.url||!/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(h.url)){return msg("Enter a valid Discord webhook URL.","err")}let url=h.url;if(h.thread)url+=(url.includes("?")?"&":"?")+"thread_id="+encodeURIComponent(h.thread);try{let r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload())});if(!r.ok)throw Error("HTTP "+r.status);msg("Message sent.","ok")}catch(e){msg("Send failed: "+e.message+". Direct browser requests may be blocked by CORS.","err")}}
+async function testWebhook(){let h=current();let old=h.message;h.message="Webhook Studio test message";await send();h.message=old;load()}
+function msg(x,c){$("status").textContent=x;$("status").className="status "+c}
+function clearMessage(){$("message").value="";update()}
+function copyJSON(){navigator.clipboard.writeText(JSON.stringify(payload(),null,2));msg("JSON copied.","ok")}
+function saveTemplate(){localStorage.setItem("webhookStudioTemplate",JSON.stringify(current()));msg("Template saved.","ok")}
+function loadTemplate(){let x=localStorage.getItem("webhookStudioTemplate");if(!x)return msg("No saved template.","err");data.hooks[data.current]={...defaults,...JSON.parse(x)};load();save();msg("Template loaded.","ok")}
+function showTab(x){["message","embed","settings"].forEach(k=>$(k+"Tab").classList.toggle("hidden",k!==x))}
+function showPreview(x){$("preview").classList.toggle("hidden",x!=="preview");$("json").classList.toggle("hidden",x!=="json")}
+function exportData(){let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="webhook-studio.json";a.click()}
+function importData(){let i=document.createElement("input");i.type="file";i.accept=".json";i.onchange=()=>{let r=new FileReader();r.onload=()=>{try{data=JSON.parse(r.result);save();load()}catch{msg("Invalid JSON file.","err")}};r.readAsText(i.files[0])};i.click()}
+function clearAll(){if(!confirm("Delete all saved webhooks and local templates?"))return;localStorage.removeItem("webhookStudio");localStorage.removeItem("webhookStudioTemplate");location.reload()}
+renderHooks();load();
+document.addEventListener("keydown",e=>{if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();send()}});
+</script>
+</body>
+</html>
